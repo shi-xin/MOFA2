@@ -33,7 +33,7 @@ prepare_biofam <- function(object, data_options = NULL, model_options = NULL, tr
     message("No data options specified, using default...")
     object@data_options <- get_default_data_options(object)
   } else {
-    if (!is(data_options,"list") | !setequal(names(data_options), names(get_default_data_options(object)) ))
+    if (!is(data_options,"list") || !setequal(names(data_options), names(get_default_data_options(object)) ))
       stop("data_options are incorrectly specified, please read the documentation in get_default_data_options")
     object@data_options <- data_options
   }
@@ -46,7 +46,7 @@ prepare_biofam <- function(object, data_options = NULL, model_options = NULL, tr
     message("No training options specified, using default...")
     object@training_options <- get_default_training_options(object)
   } else {
-    if(!is(training_options,"list") | !setequal(names(training_options), names(get_default_training_options(object)) ))
+    if(!is(training_options,"list") || !setequal(names(training_options), names(get_default_training_options(object)) ))
       stop("training_options are incorrectly specified, please read the documentation in get_default_training_options")
     object@training_options <- training_options
   }
@@ -57,7 +57,7 @@ prepare_biofam <- function(object, data_options = NULL, model_options = NULL, tr
     message("No model options specified, using default...")
     object@model_options <- get_default_model_options(object)
   } else {
-    if (!is(model_options,"list") | !setequal(names(model_options), names(get_default_model_options(object)) ))
+    if (!is(model_options,"list") || !setequal(names(model_options), names(get_default_model_options(object)) ))
       stop("model_options are incorrectly specified, please read the documentation in get_default_model_options")
     object@model_options <- model_options
   }
