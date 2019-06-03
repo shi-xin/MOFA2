@@ -6,7 +6,7 @@
 #' @return Returns an untrained \code{\link{BioFAModel}} object
 #' @import BiocGenerics
 #' @export
-create_biofam <- function(data, samples_groups = NULL) {
+create_biofam <- function(data, samples_groups = NULL, views = NULL) {
   
   if (is(data, "MultiAssayExperiment")) {
     stop("Not functional")
@@ -14,7 +14,7 @@ create_biofam <- function(data, samples_groups = NULL) {
   } else if (is(data, "Seurat")) {
     message("Creating BioFAM object from a Seurat object...")
     
-    object <- .create_biofam_from_seurat(data, samples_groups)
+    object <- .create_biofam_from_seurat(data, samples_groups, assays = views)
     
   } else if (is(data, "data.frame")) {
     message("Creating BioFAM object from a dataframe...")
@@ -175,7 +175,7 @@ create_biofam <- function(data, samples_groups = NULL) {
   return(object)
 }
 
-.create_biofam_from_seurat <- function(srt, samples_groups, assay = "RNA") {
+.create_biofam_from_seurat <- function(srt, samples_groups, assays = "RNA", slot = "data") {
   if (is(samples_groups, 'character') && (length(samples_groups) == 1)) {
     if (!(samples_groups %in% colnames(srt@meta.data)))
       stop(paste0(samples_groups, " is not found in the Seurat@meta.data.\n",
@@ -187,25 +187,30 @@ create_biofam <- function(data, samples_groups = NULL) {
 
   if (is.null(samples_groups)) {
     message("No samples_groups provided as argument... we assume that all samples are coming from the same group.\n")
-    samples_groups <- rep("group1", dim(GetAssay(object = srt, assay = assay))[2])
+    samples_groups <- rep("group1", dim(srt)[2])
   }
 
-  data_matrices <- list("rna" = .split_seurat_into_groups(srt, samples_groups, assay))
+  if (is.null(assays)) {
+    assays <- "RNA"
+  }
+
+  data_matrices <- lapply(assays, function(assay) .split_seurat_into_groups(srt, samples_groups, assay, slot))
+  names(data_matrices) <- tolower(assays)
 
   object <- new("BioFAModel")
   object@status <- "untrained"
   object@input_data <- data_matrices
   
   # Define dimensions
-  object@dimensions[["M"]] <- 1
-  object@dimensions[["D"]] <- ncol(data_matrices[[1]][[1]])
+  object@dimensions[["M"]] <- length(assays)
+  object@dimensions[["D"]] <- vapply(data_matrices, function(m) ncol(m[[1]]), 1L)
   object@dimensions[["G"]] <- length(data_matrices[[1]])
-  object@dimensions[["N"]] <- sapply(data_matrices[[1]], function(m) nrow(m))
+  object@dimensions[["N"]] <- sapply(data_matrices[[1]], function(g) nrow(g))
   object@dimensions[["K"]] <- 0
 
   # Set views & groups names
   groups_names(object) <- as.character(names(data_matrices[[1]]))
-  views_names(object)  <- c("rna")
+  views_names(object)  <- tolower(assays)
 
   return(object)
 }
@@ -227,15 +232,15 @@ create_biofam <- function(data, samples_groups = NULL) {
 #' @title Split Seurat into groups
 #' @name .split_seurat_into_groups
 #' @description Split data in Seurat object into a list of matrices
-.split_seurat_into_groups <- function(srt, samples_groups, assay = "RNA") {
+.split_seurat_into_groups <- function(srt, samples_groups, assay, slot) {
   groups_names <- unique(samples_groups)
   tmp <- lapply(groups_names, function(g) {
     # If group name is NA, it has to be treated separately
     # due to the way R handles NAs and equal signs
     if (is.na(g)) {
-      t(GetAssayData(object = srt, assay = assay, slot = "data")[,is.na(samples_groups)])
+      t(GetAssayData(object = srt, assay = assay, slot = slot)[,is.na(samples_groups)])
     } else {
-      BiocGenerics::t(GetAssayData(object = srt, assay = assay, slot = "data")[,which(samples_groups == g)])
+      BiocGenerics::t(GetAssayData(object = srt, assay = assay, slot = slot)[,which(samples_groups == g)])
     }
   })
   names(tmp) <- groups_names
