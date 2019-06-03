@@ -81,7 +81,7 @@ FSEA <- function(object, view, feature.sets, factors = "all", local.statistic = 
   
   # Check if some features do not intersect between the feature sets and the observed data and remove them
   features <- intersect(colnames(data),colnames(feature.sets))
-  if(length(features) == 0 ) stop("Feautre names in feature.sets do not match feature names in model.")
+  if(length(features) == 0 ) stop("Feature names in feature.sets do not match feature names in model.")
   data <- data[,features]
   W <- W[features,]
   feature.sets <- feature.sets[,features]
