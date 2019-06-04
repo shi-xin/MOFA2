@@ -37,7 +37,7 @@
 plot_factors <- function(object, factors = "all", group_by = "group", add_dots = TRUE, add_violin = TRUE, show_missing = TRUE, dot_size = 1,
                                  color_by = NULL, color_name = "", shape_by = NULL, shape_name = "", 
                                  jitter = TRUE, dots_alpha = 1.0,
-                                 violin_alpha = 0.5, violin_color = NA, color_violin = TRUE,
+                                 violin_alpha = 0.5, violin_color = NULL, color_violin = TRUE,
                                  rasterize = FALSE, dodge = FALSE) {
   
   # Sanity checks
@@ -119,11 +119,11 @@ plot_factors <- function(object, factors = "all", group_by = "group", add_dots =
   if (add_violin) {
     if (color_violin) {
       tmp <- summarise(group_by(df, factor, color_by), n=n())
-      if (min(tmp$n)==1) {
+      if (min(tmp$n) == 1) {
         warning("Warning: some 'color_by' groups have only one observation, violin plots are not displayed")
       } else {
-        violin_color <- ifelse(is.na(violin_color), color_by, violin_color)
-        p <- p + geom_violin(aes(fill=color_by), color=violin_color, alpha=violin_alpha, trim=F, scale="width", position=position_dodge(width = 1))
+        violin_color <- ifelse(is.null(violin_color), color_by$color_by, violin_color)
+        p <- p + geom_violin(aes(fill = color_by), color = violin_color, alpha = violin_alpha, trim = FALSE, scale = "width", position = position_dodge(width = 1))
         if (add_dots) p <- p + scale_color_discrete(guide = FALSE)
       }
     } else {
@@ -137,14 +137,14 @@ plot_factors <- function(object, factors = "all", group_by = "group", add_dots =
   
   # Add legend for color
   if (length(unique(df$color))>1) { 
-    p <- p + labs(color=color_name)
+    p <- p + labs(color = color_name)
   } else { 
-    p <- p + guides(color = FALSE) 
+    p <- p + guides(color = FALSE, fill = FALSE) 
   }
   
   # Add legend for shape
   if (length(unique(df$shape))>1) { 
-    p <- p + labs(shape=shape_name)
+    p <- p + labs(shape = shape_name)
   } else { 
     p <- p + guides(shape = FALSE) 
   }
@@ -444,7 +444,7 @@ plot_factor_cor <- function(object, method = "pearson", ...) {
   
   # Option 0: no color
   if (is.null(color_by)) {
-    color_by <- rep(TRUE,sum(object@dimensions[["N"]]))
+    color_by <- rep(TRUE, sum(object@dimensions[["N"]]))
     
   # Option 1: by default group
   } else if (color_by[1] == "group") {
