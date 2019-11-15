@@ -6,13 +6,13 @@ import numpy.ma as ma
 import os
 import h5py
 from mofapy2.core.nodes import *
-from mofapy2.core.nodes import *
 
 # To keep same order of views and groups in the hdf5 file
 # h5py.get_config().track_order = True
 
 class saveModel():
-    def __init__(self, model, outfile, data, intercepts, samples_groups, train_opts, model_opts, features_names, views_names, samples_names, groups_names, compression_level=9):
+    def __init__(self, model, outfile, data, intercepts, samples_groups, train_opts, model_opts, nonlinear_dimred, 
+        features_names, views_names, samples_names, groups_names, compression_level=9):
 
         # Check that the model is trained
         assert model.trained, "Model is not trained"        
@@ -34,6 +34,9 @@ class saveModel():
 
         # Initialise intercepts
         self.intercepts = intercepts
+
+        # Initialise nonlinear manifolds
+        self.nonlinear_dimred = nonlinear_dimred
 
         # Initialise options
         self.train_opts = train_opts
@@ -330,3 +333,17 @@ class saveModel():
         stats_grp.create_dataset("elbo", data=stats["elbo"])
         # stats_grp.create_dataset("elbo_terms", data=stats["elbo_terms"].T)
         # stats_grp['elbo_terms'].attrs['colnames'] = [a.encode('utf8') for a in stats["elbo_terms"].columns.values]
+
+    def saveDimensionalityReduction(self):
+        """ Method to save the nonlinear manifolds (UMAP or TSNE) """
+
+        if len(self.nonlinear_dimred)>0:
+
+            # Create HDF5 group
+            grp = self.hdf5.create_group("dim_red")
+
+            # Create HDF5 data sets
+            if ("UMAP" in self.nonlinear_dimred.keys()):
+                grp.create_dataset("UMAP", data=self.nonlinear_dimred["UMAP"].T)
+            if ("TSNE" in self.nonlinear_dimred.keys()):
+                grp.create_dataset("TSNE", data=self.nonlinear_dimred["TSNE"].T)

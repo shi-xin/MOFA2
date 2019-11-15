@@ -17,6 +17,7 @@ run_tsne <- function(object, factors = "all", groups = "all", ...) {
   
   # Sanity checks
   if (!is(object, "MOFA")) stop("'object' has to be an instance of MOFA")
+  if ("TSNE" %in% names(object@dim_red)) message("Recomputing t-SNE in object@dim_red$TSNE ...")
   
   # Get factor values
   Z <- get_factors(object, factors=factors, groups=groups)
@@ -30,9 +31,12 @@ run_tsne <- function(object, factors = "all", groups = "all", ...) {
   # Run t-SNE
   tsne_embedding <- Rtsne(Z, check_duplicates = FALSE, pca = FALSE, ...)
 
-  # Add sample names and enumerate latent dimensions (e.g. TSNE1 and TSNE2)
-  object@dim_red$TSNE <- data.frame(rownames(Z), tsne_embedding$Y)
-  colnames(object@dim_red$TSNE) <- c("sample", paste0("TSNE", 1:ncol(tsne_embedding$Y)))
+  # Add sample names as rownames and enumerate latent dimensions (e.g. TSNE1 and TSNE2)
+  # object@dim_red$TSNE <- data.frame(rownames(Z), tsne_embedding$Y)
+  # colnames(object@dim_red$TSNE) <- c("sample", paste0("TSNE-", 1:ncol(tsne_embedding$Y)))
+  object@dim_red$TSNE <- data.frame(tsne_embedding$Y)
+  colnames(object@dim_red$TSNE) <- paste0("TSNE-", 1:ncol(tsne_embedding$Y))
+  rownames(object@dim_red$TSNE) <- rownames(Z)
   
   return(object)
   
@@ -54,6 +58,7 @@ run_umap <- function(object, factors = "all", groups = "all", ...) {
   
   # Sanity checks
   if (!is(object, "MOFA")) stop("'object' has to be an instance of MOFA")
+  if ("UMAP" %in% names(object@dim_red)) message("Recomputing UMAP in object@dim_red$UMAP ...")
   
   # Get factor values
   Z <- get_factors(object, factors = factors, groups = groups)
@@ -65,11 +70,14 @@ run_umap <- function(object, factors = "all", groups = "all", ...) {
   Z[is.na(Z)] <- 0
   
   # Run UMAP
-  umap_embedding <- umap(Z, ...)
+  umap_embedding <- umap(Z, ...)$layout
 
-  # Add sample names and enumerate latent dimensions (e.g. UMAP1 and UMAP2)
-  object@dim_red$UMAP <- data.frame(rownames(Z), umap_embedding)
-  colnames(object@dim_red$UMAP) <- c("sample", paste0("UMAP", 1:ncol(umap_embedding)))
+  # Add sample names as rownames and enumerate latent dimensions (e.g. UMAP1 and UMAP2)
+  # object@dim_red$UMAP <- data.frame(rownames(Z), umap_embedding)
+  # colnames(object@dim_red$UMAP) <- c("sample", paste0("UMAP-", 1:ncol(umap_embedding)))
+  object@dim_red$UMAP <- data.frame(umap_embedding)
+  colnames(object@dim_red$UMAP) <- paste0("UMAP-", 1:ncol(umap_embedding))
+  rownames(object@dim_red$UMAP) <- rownames(Z)
   
   return(object)
   
@@ -132,6 +140,8 @@ plot_dimred <- function(object, method = c("UMAP", "TSNE"), groups = "all", show
   
   # Fetch latent manifold
   Z <- object@dim_red[[method]]
+  Z <- cbind(sample = rownames(Z), Z)
+  
   latent_dimensions_names <- colnames(Z)[-1]
   Z <- gather(Z, -sample, key="latent_dimension", value="value")
   

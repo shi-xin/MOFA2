@@ -189,11 +189,6 @@ load_model <- function(file, sort_factors = TRUE,
     }
   }
 
-  # Add views names to likelihood vector
-  # if (is.null(names(object@model_options$likelihoods))) {
-  #   names(object@model_options$likelihoods) <- views(object)
-  # }
-
   ##########################################
   ## Load training options and statistics ##
   ##########################################
@@ -225,6 +220,22 @@ load_model <- function(file, sort_factors = TRUE,
     object@cache[["variance_explained"]] <- r2_list
   }
   
+  ############################################
+  ## Load non-linear manifolds (UMAP, TSNE) ##
+  ############################################
+  
+  if ("/dim_red"%in%h5ls.out$group) {
+    tmp <- h5read(file, "dim_red")
+    if ("UMAP" %in% names(tmp)) {
+      object@dim_red$UMAP <- data.frame( h5read(file, "/dim_red/UMAP") )
+      colnames(object@dim_red$UMAP) <- c("UMAP-1","UMAP-2")
+    }
+    if ("TSNE" %in% names(tmp)) {
+      object@dim_red$TSNE <- data.frame( h5read(file, "/dim_red/TSNE") )
+      colnames(object@dim_red$TSNE) <- c("TSNE-1","TSNE-2")
+    }
+  }
+
   ##############################
   ## Specify dimensionalities ##
   ##############################

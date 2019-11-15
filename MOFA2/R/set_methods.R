@@ -104,6 +104,10 @@ setReplaceMethod("samples", signature(object="MOFA", value="list"),
                    if (length(object@imputed_data)>0) 
                     object <- .set_imputed_data_names(object, entity = 'samples', value)
                    
+                   # Add samples names to the dimensionality reduction plots
+                   if (length(object@dim_red)>0)
+                      for (i in names(object@dim_red)) rownames(object@dim_red[[i]]) <- unlist(value)
+                   
                    object
                  })
 

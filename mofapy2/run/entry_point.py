@@ -15,6 +15,7 @@ class entry_point(object):
     def __init__(self):
         self.print_banner()
         self.dimensionalities = {}
+        self.nonlinear_dimred = {}
         self.model = None
         self.imputed = False # flag
 
@@ -608,6 +609,53 @@ class entry_point(object):
             Ztmp[(z_score>zscore_cutoff) & (np.absolute(Z[idx,:])>value_cutoff)] = np.nan
             Z[idx,:] = Ztmp
 
+    def umap(self, scale_factors = False, init='spectral', min_dist=0.1, n_neighbors=15, verbose=False):
+        """ Method to run UMAP on the MOFA factors """
+        import umap
+
+        if self.train_opts['verbose']: print("Running UMAP...")
+
+        # Build UMAP object
+        reducer = umap.UMAP(
+            random_state = self.train_opts['seed'], 
+            init = init, 
+            min_dist = min_dist, 
+            n_neighbors = n_neighbors, 
+            verbose = verbose
+        )
+
+        # Fetch factors
+        Z = self.model.nodes['Z'].getExpectation().copy()
+        Z[np.isnan(Z)] = 0.
+
+        # Scale factors by variance explained
+        # if scale_factors:
+
+        # fit UMAP
+        self.nonlinear_dimred["UMAP"] = reducer.fit_transform(Z)
+
+    def tsne(self, scale_factors = False, init='random', perplexity=0.1, method="barnes_hut", verbose=0):
+        """ Method to run TSNE on the MOFA factors """
+
+        from sklearn.manifold import TSNE
+        if self.train_opts['verbose']: print("Running TSNE...")
+
+        # Fetch factors
+        Z = self.model.nodes['Z'].getExpectation().copy()
+        Z[np.isnan(Z)] = 0.
+
+        # Scale factors by variance explained
+        # if scale_factors:
+
+        # fit TSNE
+        self.nonlinear_dimred["TSNE"] = TSNE(
+            n_components = 2, 
+            init = init, 
+            perplexity = perplexity, 
+            method = method, 
+            verbose = verbose
+        ).fit_transform(Z)
+
     def impute(self, uncertainty=True):
         """impute missing values with or without uncertainty estimates"""
 
@@ -661,6 +709,7 @@ class entry_point(object):
           samples_groups = self.data_opts['samples_groups'],
           train_opts = self.train_opts,
           model_opts = self.model_opts,
+          nonlinear_dimred = self.nonlinear_dimred,
           samples_names = self.data_opts['samples_names'],
           features_names = self.data_opts['features_names'],
           views_names = self.data_opts['views_names'],
@@ -682,6 +731,9 @@ class entry_point(object):
         tmp.saveTrainingStats()
         tmp.saveVarianceExplained()
         tmp.saveData()
+        if len(self.nonlinear_dimred)>0:
+            tmp.saveDimensionalityReduction()
+
 
         if self.imputed:
             tmp.saveImputedData(self.imputed_data["mean"], self.imputed_data["variance"])
