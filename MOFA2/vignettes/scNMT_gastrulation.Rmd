@@ -27,7 +27,8 @@ Cells were grouped according to their developmental stage (E5.5, E6.5 and E7.5).
 The data set we use here is a simplified version of the original data set published in (Nature)[https://www.nature.com/articles/s41586-019-1825-8]. The full data set can be downloaded from [this FTP](ftp://ftp.ebi.ac.uk/pub/databases/scnmt_gastrulation).
 
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align="center")
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align="center",
+                      eval = FALSE)
 ```
 
 # Load libraries

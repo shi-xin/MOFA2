@@ -26,7 +26,7 @@ The data set can be downloaded from [here](https://www.ncbi.nlm.nih.gov/geo/quer
 # Define global settings
 
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align="center")
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align="center", eval = FALSE)
 ```
 
 # Load dependencies

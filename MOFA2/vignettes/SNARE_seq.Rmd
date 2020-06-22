@@ -21,7 +21,8 @@ There are very few protocols to date that enable this, one of them is [SNARE-seq
 In this setting, MOFA+ should be able to detect the (coordinated) variability in the RNA expression and in chromatin accessibiliy that determines the four different cell types.
 
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align="center")
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align="center",
+                      eval = FALSE)
 ```
 
 # Load libraries

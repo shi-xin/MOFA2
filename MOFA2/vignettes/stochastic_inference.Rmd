@@ -117,12 +117,15 @@ where $\rho^{(t)}$ is the learning rate at iteration $t$, $\rho^{(0)}$ is the st
 
 
 # Example
+```{r}
+knitr::opts_chunk$set(eval= FALSE)
+```
 
 ## Load libraries
 ```{r, message=FALSE}
-suppressPackageStartupMessages(library(MOFA2))
-suppressPackageStartupMessages(library(data.table))
-suppressPackageStartupMessages(library(ggplot2))
+library(MOFA2)
+library(data.table)
+library(ggplot2)
 ```
 
 ## (Optional) set up reticulate connection with Python
